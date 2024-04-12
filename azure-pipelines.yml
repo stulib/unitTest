@@ -1,0 +1,42 @@
+trigger:
+- master
+
+pool:
+    vmImage: 'ubuntu-latest'
+
+variables:
+    solution: '**/*.sln'
+    buildPlatform: 'Any CPU'
+    buildConfiguration: 'Release'
+
+steps:
+- task: NuGetToolInstaller@1
+
+- task: DotNetCoreCLI@2
+    inputs:
+        command: 'restore'
+        feedsToUse: 'select'
+        verbosityRestore: Minimal
+    
+- task: DotNetCoreCLI@2
+    inputs:
+        command: 'build'
+        arguments: 
+            --no-restore
+            --configuration Release
+
+- task: DotNetCoreCLI@2
+    displayName: Run tests
+    inputs:
+        command: 'test'
+        arguments: '
+            --no-restore 
+            --no-build 
+            --configuration Release
+            -v:detailed 
+            --consoleLoggerParameters:ErrorsOnly
+            /p:Exclude="[*Tests*]*"'
+        
+        testRunTitle: 'tests'
+        publishTestResults: true
+    
